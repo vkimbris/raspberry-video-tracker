@@ -1,5 +1,6 @@
 import cv2 
 import requests
+import json
 import numpy as np
 import time
 
@@ -22,7 +23,7 @@ class VideoTracker:
         while(True): 
             _, frame = self.vid.read() 
             
-            cv2.imshow('frame', frame) 
+            #cv2.imshow('frame', frame) 
 
             current_time = time.time()
 
@@ -41,5 +42,5 @@ class VideoTracker:
             "frame": frame.tolist(),
             "datetime": int(datetime.timestamp(datetime.now()))
         }
-        
+
         requests.post(url=self.url, json=json_to_send)
