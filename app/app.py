@@ -1,6 +1,6 @@
 import argparse
 
-from src.video_tracker import VideoTracker
+from src.video_tracker import PyGameVideoTracker
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 
@@ -11,6 +11,6 @@ args = parser.parse_args()
 args = dict(args._get_kwargs())
 
 
-video_tracker = VideoTracker(url=args["url"], interval=int(args["interval"]))
+video_tracker = PyGameVideoTracker(url=args["url"], interval=int(args["interval"]))
 
 video_tracker.loop()

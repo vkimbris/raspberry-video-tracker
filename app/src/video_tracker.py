@@ -1,46 +1,68 @@
-import cv2 
-import requests
-import json
-import numpy as np
 import time
+import requests
+
+import pygame
+import pygame.camera
 
 from datetime import datetime
 
+from typing import Tuple
 
-class VideoTracker:
 
-    def __init__(self, url: str, interval: int) -> None:
+class PyGameVideoTracker:
+
+    def __init__(self, url: str, interval: int, window_size: Tuple[int] = (640, 480)) -> None:
         self.url = url
         self.interval = interval
         
-        self.vid = cv2.VideoCapture(0)
+        pygame.init()
+        pygame.camera.init()
+        
+        self.window_size = window_size
+        self.screen = pygame.display.set_mode(window_size)
+        pygame.display.set_caption("Webcam Feed")
 
-        print(self.vid)
+        camlist = pygame.camera.list_cameras()
+        if not camlist:
+            raise ValueError("No cameras found")
+        
+        self.cam = pygame.camera.Camera(camlist[0], window_size)
+        self.cam.start()
 
     def loop(self):
         start_time = time.time()
-        
-        while(True): 
-            _, frame = self.vid.read() 
-            
-            #cv2.imshow('frame', frame) 
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    break
+
+            frame = self.cam.get_image()
 
             current_time = time.time()
 
-            # Check if the interval has elapsed
             if current_time - start_time >= self.interval:
                 
-                self.send_frame(frame)
+                status_code = self.send_frame(PyGameVideoTracker.convert_frame_to_list(frame))
+
+                print(status_code)
                 
                 start_time = time.time()
 
-            if cv2.waitKey(1) & 0xFF == ord('q'): 
-                break
+            self.screen.blit(frame, (0, 0))
+
+            pygame.display.flip()
 
     def send_frame(self, frame):
         json_to_send = {
-            "frame": frame.tolist(),
+            "frame": frame,
             "datetime": int(datetime.timestamp(datetime.now()))
         }
 
-        requests.post(url=self.url, json=json_to_send)
+        response = requests.post(url=self.url + "/receiveImage", json=json_to_send)
+
+        return response.status_code
+
+    @staticmethod
+    def convert_frame_to_list(frame):
+        return pygame.surfarray.array3d(frame).tolist()
