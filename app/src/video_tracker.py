@@ -49,9 +49,9 @@ class PyGameVideoTracker:
                 
                 start_time = time.time()
 
-            self.screen.blit(frame, (0, 0))
+            #self.screen.blit(frame, (0, 0))
 
-            pygame.display.flip()
+            #pygame.display.flip()
 
     def send_frame(self, frame):
         json_to_send = {
