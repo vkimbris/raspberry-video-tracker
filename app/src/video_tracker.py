@@ -8,6 +8,9 @@ from datetime import datetime
 
 from typing import Tuple
 
+from PIL import Image
+from io import BytesIO
+
 
 class PyGameVideoTracker:
 
@@ -39,22 +42,25 @@ class PyGameVideoTracker:
 
             if current_time - start_time >= self.interval:
                 
-                status_code = self.send_frame(PyGameVideoTracker.convert_frame_to_list(frame))
+                status_code = self.send_frame(frame)
 
                 print(status_code)
                 
                 start_time = time.time()
 
     def send_frame(self, frame):
-        json_to_send = {
-            "frame": frame,
-            "datetime": int(datetime.timestamp(datetime.now())) 
-        }
+        frame = pygame.image.tostring(frame, "RGB")
+        frame = Image.frombytes("RGB", self.window_size, frame)
 
-        response = requests.post(url=self.url + "/receiveImage", json=json_to_send)
+        print(frame)
+
+        frame_byte_arr = BytesIO()
+        frame.save(frame_byte_arr, format="PNG")
+        frame_byte_arr.seek(0)
+
+        response = requests.post(url=self.url + "/receiveFrame", files={
+            "file": frame_byte_arr
+        })
 
         return response.status_code
 
-    @staticmethod
-    def convert_frame_to_list(frame):
-        return pygame.surfarray.array3d(frame).tolist()
