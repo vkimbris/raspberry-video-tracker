@@ -11,8 +11,9 @@ from typing import Tuple
 
 class PyGameVideoTracker:
 
-    def __init__(self, url: str,  window_size: Tuple[int] = (640, 480)) -> None:
+    def __init__(self, url: str, interval: int, window_size: Tuple[int] = (640, 480)) -> None:
         self.url = url
+        self.interval = interval
         
         pygame.init()
         pygame.camera.init()
@@ -29,13 +30,20 @@ class PyGameVideoTracker:
         self.cam.start()
 
     def loop(self):
+        start_time = time.time()
+
         while True:
             frame = self.cam.get_image()
-                
-            status_code = self.send_frame(PyGameVideoTracker.convert_frame_to_list(frame))
 
-            print(status_code)
-            
+            current_time = time.time()
+
+            if current_time - start_time >= self.interval:
+                
+                status_code = self.send_frame(PyGameVideoTracker.convert_frame_to_list(frame))
+
+                print(status_code)
+                
+                start_time = time.time()
 
     def send_frame(self, frame):
         json_to_send = {
